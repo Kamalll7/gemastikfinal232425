@@ -1,0 +1,20 @@
+--- a/chall/mybini.cpp
++++ b/chall/mybini.cpp
+@@ -91,7 +91,7 @@
+         Karbit() {
+             std::cout << "nama: ";
+             std::cin.ignore();
+-            std::cin.getline(karbit, 0x20);
++            std::cin.getline(karbit, sizeof(karbit));
+             std::cout << "level karbit (0-100): ";
+             std::cin >> karbit_level;
+         }
+@@ -115,7 +115,7 @@
+             std::cout << "karbit old: " << karbit << '\n';
+             std::cout << "karbit new: ";
+             std::cin.ignore();
+-            std::cin.getline(karbit, 0x20);
++            std::cin.getline(karbit, sizeof(karbit));
+         }
+ 
+         void add_bini(){

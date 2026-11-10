@@ -1,0 +1,19 @@
+--- a/app.rb
++++ b/app.rb
+@@ -1,5 +1,6 @@
+ require "sinatra"
+ require "slim"
++require "cgi"
+ 
+ set :port, 8080
+ set :bind, '0.0.0.0'
+@@ -10,5 +11,7 @@
+ end
+ 
+ get '/art/:word' do
+-    return Slim::Template.new{ '<iframe height="100%" width="100%" frameborder="0" src=https://asciified.thelicato.io/api/v2/ascii?text=' + params[:word] + '></iframe>' }.render
++    # Escape HTML and neutralise Slim's #{...} interpolation syntax.
++    word = CGI.escapeHTML(params[:word]).gsub('#{', '&#35;{')
++    return Slim::Template.new{ '<iframe height="100%" width="100%" frameborder="0" src=https://asciified.thelicato.io/api/v2/ascii?text=' + word + '></iframe>' }.render
+ end
+\ No newline at end of file

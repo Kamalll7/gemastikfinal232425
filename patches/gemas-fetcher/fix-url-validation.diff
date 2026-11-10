@@ -1,0 +1,30 @@
+--- a/src/controllers/dashboard.py
++++ b/src/controllers/dashboard.py
+@@ -32,20 +32,22 @@
+             if data["provider"] != provider[flags]:
+                 return str("Available provider : {wget, curl, python}")
+             
+-            if urlparse(data["url"]).scheme in ["file", "ftp" ]:
++            url = data["url"].strip()
++            parsed = urlparse(url)
++            if parsed.scheme not in ["http", "https"]:
+                 return str("You cannot use this scheme!!")
+             
+-            if urlparse(data["url"]).hostname in ["localhost", "127.0.0.1"]:
++            if parsed.hostname in ["localhost", "127.0.0.1", "::1"]:
+                 return str("Cannot fetch localhost / 127.0.0.1")
+             
+             if data["provider"] == "curl":
+-                return subprocess.check_output(["curl", data["url"]]).decode()
++                return subprocess.check_output(["curl", "--", url]).decode()
+             
+             if data["provider"] == "wget":
+-                return subprocess.check_output(["wget", data["url"], "-O", "-"]).decode()
++                return subprocess.check_output(["wget", "--", url, "-O", "-"]).decode()
+             
+             if data["provider"] == "python":
+-                return urllib.request.urlopen(data["url"]).read()
++                return urllib.request.urlopen(url).read()
+         except Exception as e:
+             print(e)
+             return str("Unknown Error")

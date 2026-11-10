@@ -1,0 +1,13 @@
+--- a/src/main.py
++++ b/src/main.py
+@@ -80,6 +80,10 @@
+         return self.items[item]["callable"]()
+ 
+     def redeem_voucher(self, voucher):
++        try:
++            voucher = base64.b64encode(base64.b64decode(voucher.encode())).decode()
++        except Exception:
++            return "Your voucher is invalid"
+         if voucher in self.redeemed_voucher:
+             return "Your voucher is already used"
+ 

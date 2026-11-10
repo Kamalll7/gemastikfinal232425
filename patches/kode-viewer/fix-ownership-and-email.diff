@@ -1,0 +1,40 @@
+--- a/src/kode/kode.service.ts
++++ b/src/kode/kode.service.ts
+@@ -21,7 +21,10 @@
+     return this.parse(kodes);
+   }
+ 
+-  async show(key) {
++  async show(key, user) {
++    if (!user.isAdmin && !key.startsWith(`kode-${user.email}-`)) {
++      return null;
++    }
+     return this.kv.get(key);
+   }
+ 
+--- a/src/kode/kode.controller.ts
++++ b/src/kode/kode.controller.ts
+@@ -47,8 +47,8 @@
+ 
+   @Get(':id')
+   @UseGuards(AuthGuard)
+-  async get(@Res() res, @Param() params) {
+-    const kode = await this.kodeService.show(params.id);
++  async get(@Req() req, @Res() res, @Param() params) {
++    const kode = await this.kodeService.show(params.id, req.user);
+     return kode
+       ? res.render('kode', { kode })
+       : res.redirect(`/error?message=Kode Not Found`);
+--- a/src/auth/auth.dto.ts
++++ b/src/auth/auth.dto.ts
+@@ -1,7 +1,8 @@
+-import { IsNotEmpty, IsAlphanumeric } from 'class-validator';
++import { IsEmail, IsNotEmpty, Matches } from 'class-validator';
+ 
+ export class AuthDTO {
+-  @IsNotEmpty()
++  @IsEmail()
++  @Matches(/^[^*?\[\]\\]+$/)
+   email: string;
+ 
+   @IsNotEmpty()

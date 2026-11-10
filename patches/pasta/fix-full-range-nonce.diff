@@ -1,0 +1,21 @@
+--- a/src/pasta.py
++++ b/src/pasta.py
+@@ -1,5 +1,6 @@
+ import hmac
+ import json
++import secrets
+ from base64 import urlsafe_b64encode, urlsafe_b64decode
+ from hashlib import sha224, sha256, sha384, sha512
+ from ecdsa import SigningKey, NIST256p, NIST224p, NIST384p, NIST521p
+@@ -42,8 +43,9 @@
+         data = data.encode()
+         pub = self.priv.get_verifying_key().to_string()
+         h = self.hashfunc(data + pub).digest()
+-        nonce = hmac.new(self.priv.to_string(), data, self.hashfunc).hexdigest()
+-        sig = self.priv.sign_digest(h, k=int(nonce, 16))
++        # The nonce must cover the full curve order, not just the hash size.
++        nonce = secrets.randbelow(self.priv.curve.order - 1) + 1
++        sig = self.priv.sign_digest(h, k=nonce)
+ 
+         return self.serialize(data + pub, sig)
+ 

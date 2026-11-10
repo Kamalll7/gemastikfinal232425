@@ -1,0 +1,27 @@
+--- a/src/main.go
++++ b/src/main.go
+@@ -6,6 +6,7 @@
+ "log"
+ "net/http"
+ "path/filepath"
++"strings"
+ )
+ 
+ // Vulnerable file viewing handler - LFI vulnerability
+@@ -18,9 +19,13 @@
+ filename = "welcome.txt"
+ }
+ 
+-// Vulnerable: directly concatenating user input without proper validation
+-// This allows path traversal attacks
+-filePath := filepath.Join("/opt/files/", filename)
++// Confine reads to /opt/files; reject traversal and absolute paths.
++cleanName := filepath.Base(filename)
++if cleanName != filename || strings.Contains(filename, "..") {
++http.Error(w, "invalid file", http.StatusBadRequest)
++return
++}
++filePath := filepath.Join("/opt/files/", cleanName)
+ 
+ // Read the file
+ content, err := ioutil.ReadFile(filePath)

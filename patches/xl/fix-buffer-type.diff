@@ -1,0 +1,13 @@
+--- a/src/app.service.ts
++++ b/src/app.service.ts
+@@ -3,7 +3,8 @@
+ 
+ @Injectable()
+ export class AppService {
+-  convert(file: Express.Multer.File, options: ParsingOptions): object {
+-    return read(file.buffer, options).Sheets;
++  convert(file: Express.Multer.File, _options: ParsingOptions): object {
++    // Never let request options select SheetJS's filesystem mode.
++    return read(file.buffer, { type: 'buffer' }).Sheets;
+   }
+ }

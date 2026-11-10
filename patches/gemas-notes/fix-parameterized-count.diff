@@ -1,0 +1,27 @@
+--- a/src/note-service/src/repository/notes/notes.go
++++ b/src/note-service/src/repository/notes/notes.go
+@@ -13,7 +13,8 @@
+ const simpleNoteFilter = "SELECT Notes.id, title, User.email as author, date FROM Notes, User WHERE Notes.author=User.id AND Notes.title LIKE ?"
+ const detailNote = "SELECT Notes.id as id, title, User.email as author, date, content, tags FROM Notes, User WHERE Notes.author=User.id AND Notes.id=?"
+ const insertNote = "INSERT INTO Notes(title,content,author,date,tags) VALUES (?,?,?,DATE_FORMAT(NOW(), '%M %d, %Y'),?)"
+-const countNote = "SELECT count(*) FROM Notes WHERE %s LIKE '%%%s%%'"
++const countNoteTitle = "SELECT count(*) FROM Notes WHERE title LIKE ?"
++const countNoteTags = "SELECT count(*) FROM Notes WHERE tags LIKE ?"
+ const updateNote = "UPDATE Notes SET title = ?, content = ?, date = DATE_FORMAT(NOW(), '%M %d, %Y') WHERE  author = ? AND id = ?"
+ const deleteNote = "DELETE FROM Notes WHERE id = ? AND author = ?"
+ 
+@@ -65,7 +66,13 @@
+ 
+ func (r *NotesRepo) GetNotesCount(key string, keyword string) (*int, error) {
+ 	var count int
+-	err := r.db.Get(&count, fmt.Sprintf(countNote, key, keyword))
++	query := countNoteTitle
++	if key == "tags" {
++		query = countNoteTags
++	} else if key != "title" {
++		return nil, fmt.Errorf("invalid count key")
++	}
++	err := r.db.Get(&count, query, "%"+keyword+"%")
+ 	if err != nil {
+ 		r.log.Errorln(err.Error())
+ 	}

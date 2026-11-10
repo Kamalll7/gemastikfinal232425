@@ -1,0 +1,44 @@
+--- a/frontend/nginx.conf
++++ b/frontend/nginx.conf
+@@ -6,30 +6,23 @@
+         index index.html;
+     }
+ 
+-    # Proxy for WebSocket and HTTP requests
+-    location ~ ^/api/public {
++    # Only the exact WebSocket endpoint may request an upgrade.
++    location = /api/public/ws/ {
+         proxy_pass http://tempest-poc:5000;
+         proxy_http_version 1.1;
+-
+-        # WebSocket-specific headers
+         proxy_set_header Upgrade $http_upgrade;
+-
+-        # Conditionally set the Connection header
+-        set $connection_upgrade '';
+-        if ($http_upgrade) {
+-            set $connection_upgrade 'Upgrade';
+-        }
+-        proxy_set_header Connection $connection_upgrade;
+-
+-        proxy_buffering off;
+-        proxy_cache off;
+-
+-        # Optional: Increase timeouts to handle WebSocket connections
++        proxy_set_header Connection "Upgrade";
++        proxy_set_header Host $host;
+         proxy_read_timeout 3600;
+         proxy_send_timeout 3600;
+-        proxy_connect_timeout 3600;
++    }
+ 
+-        # Additional headers to pass
++    # Ordinary public API calls must never be upgraded/tunnelled.
++    location /api/public/ {
++        proxy_pass http://tempest-poc:5000;
++        proxy_http_version 1.1;
++        proxy_set_header Upgrade "";
++        proxy_set_header Connection "";
+         proxy_set_header Host $host;
+         proxy_set_header X-Real-IP $remote_addr;
+         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

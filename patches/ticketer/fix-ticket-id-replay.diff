@@ -1,0 +1,16 @@
+--- a/src/main.py
++++ b/src/main.py
+@@ -49,11 +49,11 @@
+             ticket_id, proof = ticket[:32], bytes.fromhex(ticket[32:])
+ 
+             if pok.verify(ticket_id.encode(), self.verifying_key, proof):
+-                if ticket_id in self.issued_tickets and ticket not in self.used_tickets:
++                if ticket_id in self.issued_tickets and ticket_id not in self.used_tickets:
+                     ticket_type = self.issued_tickets.get(ticket_id)
+                     value = TICKET_VALUE.get(ticket_type, 0)
+                     self.balance += value
+-                    self.used_tickets.append(ticket)
++                    self.used_tickets.append(ticket_id)
+                     print("Ticket succesfully refunded!")
+                 else:
+                     print("[ERROR] Invalid ticket")

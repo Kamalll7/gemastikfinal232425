@@ -1,0 +1,12 @@
+--- a/kauth/kauth.c
++++ b/kauth/kauth.c
+@@ -52,7 +52,8 @@
+   }
+   const char *name = lua_tostring(L, -1);
+   lua_pop(L, 1);
+-  strcpy((char *)claim.name, name);
++  strncpy((char *)claim.name, name, sizeof(claim.name) - 1);
++  ((char *)claim.name)[sizeof(claim.name) - 1] = '\0';
+ 
+   claim.exp = time(0) + 1800; // 30 min
+ 

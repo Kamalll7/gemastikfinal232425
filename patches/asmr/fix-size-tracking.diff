@@ -1,0 +1,47 @@
+--- a/src/asmr.py
++++ b/src/asmr.py
+@@ -10,6 +10,7 @@
+ 
+ engine = Uc(UC_ARCH_X86, UC_MODE_64)
+ notes = [0 for _ in range(MAX_NOTES)]
++sizes = [0 for _ in range(MAX_NOTES)]
+ libc = ctypes.CDLL(find_library("c"))
+ 
+ 
+@@ -33,12 +34,13 @@
+             return
+ 
+         notes[idx] = libc.malloc(size)
++        sizes[idx] = size
+ 
+         uc.reg_write(x86_const.UC_X86_REG_RAX, idx)
+         return
+ 
+     def edit(idx, buf, size):
+-        if notes[idx] == 0:
++        if notes[idx] == 0 or size > sizes[idx]:
+             uc.reg_write(x86_const.UC_X86_REG_RAX, -1)
+             return
+ 
+@@ -59,18 +61,17 @@
+ 
+         libc.free(notes[idx])
+         notes[idx] = 0
++        sizes[idx] = 0
+ 
+         uc.reg_write(x86_const.UC_X86_REG_RAX, 0)
+         return
+ 
+     def view(idx, buf, size):
+-        if notes[idx] == 0:
++        if notes[idx] == 0 or size > sizes[idx]:
+             uc.reg_write(x86_const.UC_X86_REG_RAX, -1)
+             return
+ 
+-        libc.puts(notes[idx])
+-
+-        kbuf = ctypes.string_at(notes[idx], size)
++        kbuf = ctypes.string_at(notes[idx], sizes[idx])
+         uc.mem_write(buf, kbuf)
+ 
+         uc.reg_write(x86_const.UC_X86_REG_RAX, 0)

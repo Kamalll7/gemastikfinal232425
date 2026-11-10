@@ -1,0 +1,14 @@
+--- a/src/main.go
++++ b/src/main.go
+@@ -32,6 +32,11 @@
+ 			fmt.Print("how much money? ")
+ 			fmt.Scanln(&donate)
+ 
++			if donate < 0 {
++				fmt.Println("donation cannot be negative")
++				return
++			}
++
+ 			if donate > money {
+ 				fmt.Println("not enough money")
+ 				return

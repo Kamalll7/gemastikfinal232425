@@ -1,0 +1,46 @@
+--- a/chall/app.py
++++ b/chall/app.py
+@@ -1,5 +1,6 @@
+ import os
+ import sqlite3
++import subprocess
+ from flask import (
+     Flask, g, request, session, redirect, url_for,
+     render_template, render_template_string, flash, abort, send_from_directory
+@@ -123,16 +124,19 @@
+         image_filename = None
+         metadata_text = ""
+         if file and allowed_file(file.filename):
+-            original_filename = file.filename
++            original_filename = secure_filename(file.filename)
+             save_path = os.path.join(app.config['UPLOAD_FOLDER'], original_filename)
+             os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+             file.save(save_path)
+ 
+             try:
+-                cmd = f"exiftool {save_path}"
+                 meta_file = save_path + ".meta"
+-                full_cmd = f"{cmd} > {meta_file} 2>&1"
+-                os_status = os.system(full_cmd)
++                proc = subprocess.run(
++                    ["exiftool", "--", save_path],
++                    capture_output=True, text=True, timeout=10,
++                )
++                with open(meta_file, "w", encoding="utf-8") as mf:
++                    mf.write(proc.stdout + proc.stderr)
+                 if os.path.exists(meta_file):
+                     with open(meta_file, "r", encoding="utf-8", errors="ignore") as mf:
+                         metadata_text = mf.read()
+@@ -190,8 +194,10 @@
+                 )
+                 db.commit()
+                 post_id = cur.lastrowid
+-                metadata_insert = f"UPDATE posts SET metadata = '{metadata_text}' WHERE id = {post_id};"
+-                db.executescript(metadata_insert)
++                db.execute(
++                    "UPDATE posts SET metadata = ? WHERE id = ?",
++                    (metadata_text, post_id),
++                )
+                 db.commit()
+             except Exception as e:
+                 db.execute(

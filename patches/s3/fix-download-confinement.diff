@@ -1,0 +1,19 @@
+--- a/src/main.py
++++ b/src/main.py
+@@ -24,9 +24,13 @@
+ @app.route("/download", methods=["GET"])
+ def donlot():
+     try:
+-        filename = request.args.get("filename")
+-        assert filename and ".." not in filename
+-        return open(os.path.join("uploads/", filename)).read()
++        filename = request.args.get("filename") or ""
++        filename = os.path.basename(filename)
++        path = os.path.realpath(os.path.join("uploads", filename))
++        uploads_dir = os.path.realpath("uploads")
++        if not path.startswith(uploads_dir + os.sep):
++            return ">:("
++        return open(path).read()
+     except:
+         return ">:("
+ 
